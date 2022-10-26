@@ -53,8 +53,8 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "&quot;Moonriver 2&quot; 0.035 0.08"
-            isEnabled = "YES">
+            argument = "&quot;Moonriver 2&quot; 0.035 0.08 0 output"
+            isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
    </LaunchAction>

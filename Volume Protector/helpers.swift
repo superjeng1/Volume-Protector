@@ -31,6 +31,45 @@ struct Options {
     let deviceScope: Scope
 }
 
+extension StringProtocol {
+    var float32: Float32? { Float32(self) }
+    var uint32: UInt32? { UInt32(self) }
+}
+
+let usageString = """
+USAGE: volume-protector <target-device-name> <default-volume> <dangerous-volume> <channel> <scope>
+
+ARGUMENTS:
+  <target-device-name>    Audio device to monitor.
+  <default-volume>        Default volume to set the audio device to.
+  <dangerous-volume>      Set volume of the audio device to 'default volume' if device volume exceeds this number.
+  <channel>               Channel to change the volume for.
+  <scope>                 Scope to apply to when changing the volume.
+"""
+
+func getUserOptions() -> Options? {
+    if CommandLine.arguments.count < 6 { logger.fault("Invalid input length"); return nil }
+    CommandLine.arguments.removeFirst()
+    var targetDeviceName = CommandLine.arguments.removeFirst()
+    if targetDeviceName.first == "\"" {
+        while targetDeviceName.last != "\"" {
+            targetDeviceName += CommandLine.arguments.removeFirst()
+        }
+    }
+    if CommandLine.arguments.count != 4 { logger.fault("Invalid input length"); return nil }
+    guard let defaultVolume = CommandLine.arguments.removeFirst().float32 else { logger.fault("Invalid input."); return nil }
+    guard let dangerousVolume = CommandLine.arguments.removeFirst().float32 else { logger.fault("Invalid input."); return nil }
+    guard let deviceChannel = CommandLine.arguments.removeFirst().uint32 else { logger.fault("Invalid input."); return nil }
+    let deviceScopeStr = CommandLine.arguments.removeFirst()
+    
+    guard let deviceScope: Scope = str2scope[deviceScopeStr] else {
+        logger.fault("Invalid scope.")
+        return nil
+    }
+    
+    return Options(targetDeviceName: targetDeviceName, defaultVolume: defaultVolume, dangerousVolume: dangerousVolume, deviceChannel: deviceChannel, deviceScope: deviceScope)
+}
+
 func createVolumeChangeObserver(device: AudioDevice, userOptions: Options) -> NSObjectProtocol {
     return NotificationCenter.default.addObserver(forName: .deviceVolumeDidChange, object: device, queue: .main) { (notification) in
         guard let channel = notification.userInfo?["channel"] as? UInt32 else { return }
