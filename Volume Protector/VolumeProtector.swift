@@ -36,7 +36,9 @@ struct VolumeProtector: ParsableCommand {
             return
         }
         
-        _ = createDeviceListChangedObserver(targetDeviceName: targetDeviceName, defaultVolume: defaultVolume, dangerousVolume: dangerousVolume, deviceChannel: deviceChannel, deviceScope: deviceScope)
+        let userOptions = Options(targetDeviceName: targetDeviceName, defaultVolume: defaultVolume, dangerousVolume: dangerousVolume, deviceChannel: deviceChannel, deviceScope: deviceScope)
+        
+        _ = createDeviceListChangedObserver(userOptions: userOptions)
         
         RunLoop.main.run()
     }
