@@ -40,32 +40,28 @@ let usageString = """
 USAGE: volume-protector <target-device-name> <default-volume> <dangerous-volume> <channel> <scope>
 
 ARGUMENTS:
-  <target-device-name>    Audio device to monitor.
+  <target-device-name>    Audio device to monitor. Use `"` to wrap around if name includes space.
   <default-volume>        Default volume to set the audio device to.
   <dangerous-volume>      Set volume of the audio device to 'default volume' if device volume exceeds this number.
-  <channel>               Channel to change the volume for.
-  <scope>                 Scope to apply to when changing the volume.
+  <channel>               Channel to change the volume for. (Use 0 in most cases.)
+  <scope>                 Scope to apply to when changing the volume. (output|global|input|main|playthrough|wildcard)
 """
 
 func getUserOptions() -> Options? {
-    if CommandLine.arguments.count < 6 { logger.fault("Invalid input length"); return nil }
-    CommandLine.arguments.removeFirst()
-    var targetDeviceName = CommandLine.arguments.removeFirst()
+    var args: [String] = CommandLine.arguments.dropFirst().reversed()
+
+    guard var targetDeviceName = args.popLast() else { print("Too few arguments!"); return nil }
     if targetDeviceName.first == "\"" {
         while targetDeviceName.last != "\"" {
-            targetDeviceName += CommandLine.arguments.removeFirst()
+            guard let nextStr = args.popLast() else { print("Quote is not closed!"); return nil }
+            targetDeviceName += nextStr
         }
     }
-    if CommandLine.arguments.count != 4 { logger.fault("Invalid input length"); return nil }
-    guard let defaultVolume = CommandLine.arguments.removeFirst().float32 else { logger.fault("Invalid input."); return nil }
-    guard let dangerousVolume = CommandLine.arguments.removeFirst().float32 else { logger.fault("Invalid input."); return nil }
-    guard let deviceChannel = CommandLine.arguments.removeFirst().uint32 else { logger.fault("Invalid input."); return nil }
-    let deviceScopeStr = CommandLine.arguments.removeFirst()
-    
-    guard let deviceScope: Scope = str2scope[deviceScopeStr] else {
-        logger.fault("Invalid scope.")
-        return nil
-    }
+
+    guard let defaultVolume = args.popLast()?.float32 else { print("<default-volume> is not Float32."); return nil }
+    guard let dangerousVolume = args.popLast()?.float32 else { print("<dangerous-volume> is not Float32."); return nil }
+    guard let deviceChannel = args.popLast()?.uint32 else { print("<channel> is not UInt32."); return nil }
+    guard let deviceScope: Scope = args.popLast().flatMap({str2scope[$0]}) else { print("<scope> is not a valid scope."); return nil }
     
     return Options(targetDeviceName: targetDeviceName, defaultVolume: defaultVolume, dangerousVolume: dangerousVolume, deviceChannel: deviceChannel, deviceScope: deviceScope)
 }
