@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		3FBCFD6729067ED3003CE61B /* VolumeProtector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FBCFD6629067ED3003CE61B /* VolumeProtector.swift */; };
 		3FBCFD6F29067FB5003CE61B /* SimplyCoreAudio in Frameworks */ = {isa = PBXBuildFile; productRef = 3FBCFD6E29067FB5003CE61B /* SimplyCoreAudio */; };
-		3FBCFD72290875C1003CE61B /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = 3FBCFD71290875C1003CE61B /* ArgumentParser */; };
 		3FBCFD7429090B82003CE61B /* helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FBCFD7329090B82003CE61B /* helpers.swift */; };
 /* End PBXBuildFile section */
 
@@ -36,7 +35,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3FBCFD72290875C1003CE61B /* ArgumentParser in Frameworks */,
 				3FBCFD6F29067FB5003CE61B /* SimplyCoreAudio in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -87,7 +85,6 @@
 			name = "Volume Protector";
 			packageProductDependencies = (
 				3FBCFD6E29067FB5003CE61B /* SimplyCoreAudio */,
-				3FBCFD71290875C1003CE61B /* ArgumentParser */,
 			);
 			productName = "Volume Protector";
 			productReference = 3FBCFD6329067ED3003CE61B /* Volume Protector */;
@@ -119,7 +116,6 @@
 			mainGroup = 3FBCFD5A29067ED3003CE61B;
 			packageReferences = (
 				3FBCFD6D29067FB5003CE61B /* XCRemoteSwiftPackageReference "SimplyCoreAudio" */,
-				3FBCFD70290875C1003CE61B /* XCRemoteSwiftPackageReference "swift-argument-parser" */,
 			);
 			productRefGroup = 3FBCFD6429067ED3003CE61B /* Products */;
 			projectDirPath = "";
@@ -308,14 +304,6 @@
 				minimumVersion = 4.0.0;
 			};
 		};
-		3FBCFD70290875C1003CE61B /* XCRemoteSwiftPackageReference "swift-argument-parser" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/apple/swift-argument-parser.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.0;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -323,11 +311,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 3FBCFD6D29067FB5003CE61B /* XCRemoteSwiftPackageReference "SimplyCoreAudio" */;
 			productName = SimplyCoreAudio;
-		};
-		3FBCFD71290875C1003CE61B /* ArgumentParser */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 3FBCFD70290875C1003CE61B /* XCRemoteSwiftPackageReference "swift-argument-parser" */;
-			productName = ArgumentParser;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
