@@ -55,76 +55,11 @@ func deviceListChangedHandler() -> Void {
             logger.info("Removing Observer")
             NotificationCenter.default.removeObserver(observer)
         }
-        /*
-        for observer in observers {
-            logger.info("Removing Observer")
-            NotificationCenter.default.removeObserver(observer)
-        }
-        observers.removeAll()
-        */
     }
 }
-
 
 deviceListChangedHandler()
 
 for await _ in NotificationCenter.default.notifications(named: .deviceListChanged) {
     deviceListChangedHandler()
 }
-
-
-//let d = simplyCA.allDevices.filter { $0.name == targetDeviceName }[0]
-//d.setVolume(defaultVolume, channel: deviceChannel, scope: deviceScope)
-//addVolumeChangeObserver(device: d)
-
-/*
-func findTargetDevice(devices: [AudioDevice]) -> AudioDevice? {
-    for device in devices {
-        if device.name == targetDeviceName {
-            print("INFO: The target device \"\(targetDeviceName)\" is found!")
-            return device
-        }
-    }
-    return nil
-}
-*/
-/*
- func findTargetDevices(devices: [AudioDevice]) -> [AudioDevice] {
-    var matchingDevices:[AudioDevice] = []
-    for device in devices {
-        if device.name.contains(targetDeviceName) {
-            print("INFO: The target device \"\(device.name)\" is found!")
-            matchingDevices.append(device)
-        }
-    }
-    return matchingDevices
-}
-*/
-
-
-/*
-for await notification in NotificationCenter.default.notifications(named: .deviceListChanged) {
-    guard let addedDevices = notification.userInfo?["addedDevices"] as? [AudioDevice] else {
-        print("ERROR: addedDevices is nil!")
-        continue
-    }
-    guard let removedDevices = notification.userInfo?["removedDevices"] as? [AudioDevice] else {
-        print("ERROR: removedDevices is nil!")
-        continue
-    }
-
-    if let addedDevice = findTargetDevice(devices: addedDevices) {
-        print("INFO: Setting volume for \"\(targetDeviceName)\" to default value of \(defaultVolume * 100)%")
-        addedDevice.setVolume(defaultVolume, channel: deviceChannel, scope: deviceScope)
-        print("INFO: Starting volume observer.")
-        addVolumeChangeObserver(device: addedDevice)
-    }
-
-    if findTargetDevice(devices: removedDevices) != nil {
-        if observer != nil {
-            print("INFO: Removing Observer")
-            NotificationCenter.default.removeObserver(observer!)
-        }
-    }
-}
-*/
