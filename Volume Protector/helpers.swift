@@ -95,7 +95,7 @@ func deviceListChangedHandler(userOptions: Options) -> Void {
         }
     } else {
         while let observer = volumeChangeObservers.popLast() {
-            logger.info("Removing Observer")
+            logger.info("Removing volume observer.")
             NotificationCenter.default.removeObserver(observer)
         }
     }
