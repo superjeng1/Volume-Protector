@@ -10,7 +10,7 @@ import SimplyCoreAudio
 import os
 
 @main
-class main {
+struct main {
     static func main() {
         logger.info("Greetings from Volume Protector!")
         

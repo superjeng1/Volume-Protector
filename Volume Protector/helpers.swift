@@ -50,18 +50,12 @@ ARGUMENTS:
 func getUserOptions() -> Options? {
     var args: [String] = CommandLine.arguments.dropFirst().reversed()
 
-    guard var targetDeviceName = args.popLast() else { print("Too few arguments!"); return nil }
-    if targetDeviceName.first == "\"" {
-        while targetDeviceName.last != "\"" {
-            guard let nextStr = args.popLast() else { print("Quote is not closed!"); return nil }
-            targetDeviceName += nextStr
-        }
-    }
-
+    guard let targetDeviceName = args.popLast() else { print("Too few arguments!"); return nil }
     guard let defaultVolume = args.popLast()?.float32 else { print("<default-volume> is not Float32."); return nil }
     guard let dangerousVolume = args.popLast()?.float32 else { print("<dangerous-volume> is not Float32."); return nil }
     guard let deviceChannel = args.popLast()?.uint32 else { print("<channel> is not UInt32."); return nil }
     guard let deviceScope: Scope = args.popLast().flatMap({str2scope[$0]}) else { print("<scope> is not a valid scope."); return nil }
+    guard args.isEmpty else { print("Too many arguments!"); return nil }
     
     return Options(targetDeviceName: targetDeviceName, defaultVolume: defaultVolume, dangerousVolume: dangerousVolume, deviceChannel: deviceChannel, deviceScope: deviceScope)
 }
