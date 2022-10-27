@@ -75,6 +75,7 @@ func createVolumeChangeObserver(device: AudioDevice, userOptions: Options) -> NS
 
 func deviceListChangedHandler(userOptions: Options) -> Void {
     let deviceList = simplyCA.allDevices
+    var newVolumeChangeObservers:[NSObjectProtocol] = []
     
     if let targetDevice = deviceList.first(where: { $0.name == userOptions.targetDeviceName }) {
         let eqMacDevice = deviceList.first(where: { $0.name.contains("eqMac") })
@@ -83,16 +84,16 @@ func deviceListChangedHandler(userOptions: Options) -> Void {
             logger.info("Setting volume for \"\(device.name, privacy: .public)\" to a default value of \(userOptions.defaultVolume * 100)%")
             device.setVolume(userOptions.defaultVolume, channel: userOptions.deviceChannel, scope: userOptions.deviceScope)
             logger.info("Starting volume observer for \"\(device.name, privacy: .public)\".")
-            volumeChangeObservers.append(
+            newVolumeChangeObservers.append(
                 createVolumeChangeObserver(device: device, userOptions: userOptions)
             )
         }
-    } else {
-        while let observer = volumeChangeObservers.popLast() {
-            logger.info("Removing volume observer.")
-            NotificationCenter.default.removeObserver(observer)
-        }
     }
+    while let observer = volumeChangeObservers.popLast() {
+        logger.info("Removing volume observer.")
+        NotificationCenter.default.removeObserver(observer)
+    }
+    volumeChangeObservers = newVolumeChangeObservers
 }
 
 func createDeviceListChangedObserver(userOptions: Options) -> NSObjectProtocol {
