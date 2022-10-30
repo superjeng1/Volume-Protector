@@ -147,12 +147,12 @@ func eqMacHandler(_ userOptions: Options,
         observers.eqMacName.stop()
         return
     }
+    
+    let deviceName = eqMacDevice.name
+    logger.info("eqMac virtual device found.\(deviceName, privacy: .public)")
 
     observers.defaultDevice.stop()
     observers.eqMacName.start(device: eqMacDevice, userOptions: userOptions, observers: observers)
-
-    let deviceName = eqMacDevice.name
-    logger.info("eqMac virtual device found.\(deviceName, privacy: .public)")
 
     if deviceName.contains(userOptions.targetDeviceName) {
         logger.info("eqMac output device is the target device.")
