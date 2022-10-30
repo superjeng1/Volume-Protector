@@ -18,6 +18,7 @@ class Observers {
     var eqMacName = DeviceName()
     var eqMacVolume = DeviceVolume()
     var defaultDevice = DefaultDevice()
+    var deviceList = DeviceList()
 
     class Observer {
         var observer: NSObjectProtocol?
@@ -86,6 +87,22 @@ class Observers {
             self.observer = self.observer ?? createDefaultDeviceObserver(userOptions, observers)
         }
     }
+
+    class DeviceList: Observer {
+        func createDeviceListChangedObserver(_ userOptions: Options, _ observers: Observers) -> NSObjectProtocol {
+            targetDeviceHandler(userOptions, observers)
+            eqMacHandler(userOptions, observers)
+            return NotificationCenter.default.addObserver(forName: .deviceListChanged,
+                                                          object: nil,
+                                                          queue: .main) { (_) in
+                targetDeviceHandler(userOptions, observers)
+                eqMacHandler(userOptions, observers)
+            }
+        }
+        func start(_ userOptions: Options, _ observers: Observers) {
+            self.observer = self.observer ?? createDeviceListChangedObserver(userOptions, observers)
+        }
+    }
 }
 
 func eqMacHandler(_ userOptions: Options,
@@ -96,7 +113,7 @@ func eqMacHandler(_ userOptions: Options,
         observers.eqMacName.stop()
         return
     }
-    
+
     let deviceName = eqMacDevice.name
     logger.info("eqMac virtual device found.\(deviceName, privacy: .public)")
 
@@ -122,16 +139,5 @@ func targetDeviceHandler(_ userOptions: Options, _ observers: Observers) {
     } else {
         logger.info("Removing volume observer.")
         observers.targetDeviceVolume.stop()
-    }
-}
-
-func createDeviceListChangedObserver(_ userOptions: Options, _ observers: Observers) -> NSObjectProtocol {
-    targetDeviceHandler(userOptions, observers)
-    eqMacHandler(userOptions, observers)
-    return NotificationCenter.default.addObserver(forName: .deviceListChanged,
-                                                  object: nil,
-                                                  queue: .main) { (_) in
-        targetDeviceHandler(userOptions, observers)
-        eqMacHandler(userOptions, observers)
     }
 }

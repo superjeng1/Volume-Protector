@@ -23,7 +23,8 @@ struct Main {
         guard let scopeStr = str2scope.first(where: { $0.value == userOptions.deviceScope })?.key else { return }
         logger.info("Scope: \"\(scopeStr, privacy: .public)\"")
 
-        _ = createDeviceListChangedObserver(userOptions, Observers())
+        let observers = Observers()
+        observers.deviceList.start(userOptions, observers)
 
         RunLoop.main.run()
     }
