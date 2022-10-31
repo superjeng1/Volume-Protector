@@ -14,17 +14,16 @@ struct Main {
     static func main() {
         logger.info("Greetings from Volume Protector!")
 
-        guard let userOptions = getUserOptions() else { print(usageString); return }
-
-        logger.info("Device: \"\(userOptions.targetDeviceName, privacy: .public)\"")
-        logger.info("Default Volume: \"\(userOptions.defaultVolume, privacy: .public)\"")
-        logger.info("Dangerous Volume: \"\(userOptions.dangerousVolume, privacy: .public)\"")
-        logger.info("Channel: \"\(userOptions.deviceChannel, privacy: .public)\"")
-        guard let scopeStr = str2scope.first(where: { $0.value == userOptions.deviceScope })?.key else { return }
+        logger.info("Device: \"\(Cli.User.options.targetDeviceName, privacy: .public)\"")
+        logger.info("Default Volume: \"\(Cli.User.options.defaultVolume, privacy: .public)\"")
+        logger.info("Dangerous Volume: \"\(Cli.User.options.dangerousVolume, privacy: .public)\"")
+        logger.info("Channel: \"\(Cli.User.options.deviceChannel, privacy: .public)\"")
+        guard let scopeStr = Cli.str2scope.first(where: { $0.value == Cli.User.options.deviceScope })?.key else {
+            return
+        }
         logger.info("Scope: \"\(scopeStr, privacy: .public)\"")
 
-        let observers = Observers()
-        observers.deviceList.start(userOptions, observers)
+        Observers.deviceList.start()
 
         RunLoop.main.run()
     }
