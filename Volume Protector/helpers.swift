@@ -14,11 +14,11 @@ let simplyCA = SimplyCoreAudio()
 let logger = Logger(subsystem: "dev.jeng.Volume-Protector", category: "earSafety")
 
 class Observers {
-    var targetDeviceVolume = DeviceVolume()
-    var eqMacName = DeviceName()
-    var eqMacVolume = DeviceVolume()
-    var defaultDevice = DefaultDevice()
-    var deviceList = DeviceList()
+    static let targetDeviceVolume = DeviceVolume()
+    static let eqMacName = DeviceName()
+    static let eqMacVolume = DeviceVolume()
+    static let defaultDevice = DefaultDevice()
+    static let deviceList = DeviceList()
 
     class Observer {
         var observer: NSObjectProtocol?
@@ -31,11 +31,11 @@ class Observers {
     }
 
     class DeviceVolume: Observer {
-        func createVolumeChangeObserver(_ device: AudioDevice, _ userOptions: Options) -> NSObjectProtocol {
+        func createVolumeChangeObserver(_ device: AudioDevice) -> NSObjectProtocol {
             device.setVolume(
-                userOptions.defaultVolume,
-                channel: userOptions.deviceChannel,
-                scope: userOptions.deviceScope)
+                Cli.User.options.defaultVolume,
+                channel: Cli.User.options.deviceChannel,
+                scope: Cli.User.options.deviceScope)
             return NotificationCenter.default.addObserver(forName: .deviceVolumeDidChange,
                                                           object: device,
                                                           queue: .main) { (notification) in
@@ -43,101 +43,99 @@ class Observers {
                 guard let scope = notification.userInfo?["scope"] as? Scope else { return }
                 guard let volume = device.volume(channel: channel, scope: scope) else { return }
                 logger.info("Volume of \"\(device.name, privacy: .public)\" was altered to \(volume * 100)%")
-                if volume > userOptions.dangerousVolume {
-                    device.setVolume(userOptions.defaultVolume, channel: channel, scope: scope)
-                    logger.info("WARNING: Volume reduced to \(userOptions.defaultVolume * 100)%")
+                if volume > Cli.User.options.dangerousVolume {
+                    device.setVolume(Cli.User.options.defaultVolume, channel: channel, scope: scope)
+                    logger.info("WARNING: Volume reduced to \(Cli.User.options.defaultVolume * 100)%")
                     logger.info("from DANGEROUS volume \(volume * 100)% for \"\(device.name, privacy: .public)\"!")
                 }
             }
         }
-        func start(device: AudioDevice, userOptions: Options) {
-            self.observer = self.observer ?? createVolumeChangeObserver(device, userOptions)
+        func start(device: AudioDevice) {
+            self.observer = self.observer ?? createVolumeChangeObserver(device)
         }
     }
 
     class DeviceName: Observer {
-        func createNameChangeObserver(_ eqMacDevice: AudioDevice,
-                                      _ userOptions: Options,
-                                      _ observers: Observers) -> NSObjectProtocol {
+        func createNameChangeObserver(_ eqMacDevice: AudioDevice) -> NSObjectProtocol {
             return NotificationCenter.default.addObserver(forName: .deviceNameDidChange,
                                                                       object: eqMacDevice,
                                                                       queue: .main) { (_) in
-                eqMacHandler(userOptions, observers, eqMacDevice: eqMacDevice)
+                Handler.eqMac(eqMacDevice: eqMacDevice)
                 logger.info("Name changed.\(eqMacDevice.name)")
             }
         }
-        func start(device: AudioDevice, userOptions: Options, observers: Observers) {
-            self.observer = self.observer ?? createNameChangeObserver(device, userOptions, observers)
+        func start(device: AudioDevice) {
+            self.observer = self.observer ?? createNameChangeObserver(device)
         }
     }
 
     class DefaultDevice: Observer {
-        func createDefaultDeviceObserver(_ userOptions: Options, _ observers: Observers) -> NSObjectProtocol {
+        func createDefaultDeviceObserver() -> NSObjectProtocol {
             return NotificationCenter.default.addObserver(forName: .defaultOutputDeviceChanged,
                                                                         object: nil,
                                                                         queue: .main) { (_) in
                 guard let device = simplyCA.defaultOutputDevice else { return }
                 if device.name.contains("eqMac") {
-                    eqMacHandler(userOptions, observers, eqMacDevice: device)
+                    Handler.eqMac(eqMacDevice: device)
                 }
                 logger.info("Default output changed.\(simplyCA.defaultOutputDevice!.name)")
             }
         }
-        func start(userOptions: Options, observers: Observers) {
-            self.observer = self.observer ?? createDefaultDeviceObserver(userOptions, observers)
+        func start() {
+            self.observer = self.observer ?? createDefaultDeviceObserver()
         }
     }
 
     class DeviceList: Observer {
-        func createDeviceListChangedObserver(_ userOptions: Options, _ observers: Observers) -> NSObjectProtocol {
-            targetDeviceHandler(userOptions, observers)
-            eqMacHandler(userOptions, observers)
+        func createDeviceListChangedObserver() -> NSObjectProtocol {
+            Handler.targetDevice()
+            Handler.eqMac()
             return NotificationCenter.default.addObserver(forName: .deviceListChanged,
                                                           object: nil,
                                                           queue: .main) { (_) in
-                targetDeviceHandler(userOptions, observers)
-                eqMacHandler(userOptions, observers)
+                Handler.targetDevice()
+                Handler.eqMac()
             }
         }
-        func start(_ userOptions: Options, _ observers: Observers) {
-            self.observer = self.observer ?? createDeviceListChangedObserver(userOptions, observers)
+        func start() {
+            self.observer = self.observer ?? createDeviceListChangedObserver()
         }
     }
 }
 
-func eqMacHandler(_ userOptions: Options,
-                  _ observers: Observers,
-                  eqMacDevice: AudioDevice? = simplyCA.allDevices.first(where: { $0.name.contains("eqMac") })) {
-    guard let eqMacDevice else {
-        observers.defaultDevice.start(userOptions: userOptions, observers: observers)
-        observers.eqMacName.stop()
-        return
+class Handler {
+    static func eqMac(eqMacDevice: AudioDevice? = simplyCA.allDevices.first(where: { $0.name.contains("eqMac") })) {
+        guard let eqMacDevice else {
+            Observers.defaultDevice.start()
+            Observers.eqMacName.stop()
+            return
+        }
+
+        let deviceName = eqMacDevice.name
+        logger.info("eqMac virtual device found.\(deviceName, privacy: .public)")
+
+        Observers.defaultDevice.stop()
+        Observers.eqMacName.start(device: eqMacDevice)
+
+        if deviceName.contains(Cli.User.options.targetDeviceName) {
+            logger.info("eqMac output device is the target device.")
+            Observers.eqMacVolume.start(device: eqMacDevice)
+        } else {
+            Observers.eqMacVolume.stop()
+        }
     }
 
-    let deviceName = eqMacDevice.name
-    logger.info("eqMac virtual device found.\(deviceName, privacy: .public)")
+    static func targetDevice() {
+        let deviceList = simplyCA.allDevices
 
-    observers.defaultDevice.stop()
-    observers.eqMacName.start(device: eqMacDevice, userOptions: userOptions, observers: observers)
-
-    if deviceName.contains(userOptions.targetDeviceName) {
-        logger.info("eqMac output device is the target device.")
-        observers.eqMacVolume.start(device: eqMacDevice, userOptions: userOptions)
-    } else {
-        observers.eqMacVolume.stop()
-    }
-}
-
-func targetDeviceHandler(_ userOptions: Options, _ observers: Observers) {
-    let deviceList = simplyCA.allDevices
-
-    if let device = deviceList.first(where: { $0.name == userOptions.targetDeviceName }) {
-        logger.info("Setting volume for \"\(device.name, privacy: .public)\"")
-        logger.info("to a default value of \(userOptions.defaultVolume * 100)%")
-        logger.info("Starting volume observer for \"\(device.name, privacy: .public)\".")
-        observers.targetDeviceVolume.start(device: device, userOptions: userOptions)
-    } else {
-        logger.info("Removing volume observer.")
-        observers.targetDeviceVolume.stop()
+        if let device = deviceList.first(where: { $0.name == Cli.User.options.targetDeviceName }) {
+            logger.info("Setting volume for \"\(device.name, privacy: .public)\"")
+            logger.info("to a default value of \(Cli.User.options.defaultVolume * 100)%")
+            logger.info("Starting volume observer for \"\(device.name, privacy: .public)\".")
+            Observers.targetDeviceVolume.start(device: device)
+        } else {
+            logger.info("Removing volume observer.")
+            Observers.targetDeviceVolume.stop()
+        }
     }
 }
