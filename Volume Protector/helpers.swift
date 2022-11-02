@@ -13,6 +13,28 @@ let simplyCA = SimplyCoreAudio()
 
 let logger = Logger(subsystem: "dev.jeng.Volume-Protector", category: "earSafety")
 
+protocol Observer: AnyObject {
+    var observer: NSObjectProtocol? { get set }
+    func create(_ device: AudioDevice) -> NSObjectProtocol
+    func create() -> NSObjectProtocol
+    func start(device: AudioDevice)
+    func start()
+    func stop()
+}
+
+extension Observer {
+    func create(_ device: AudioDevice) -> NSObjectProtocol { return NSObject() }
+    func create() -> NSObjectProtocol { return NSObject() }
+    func start(device: AudioDevice) { self.observer = self.observer ?? create(device) }
+    func start() { self.observer = self.observer ?? create() }
+    func stop() {
+        if let observer {
+            NotificationCenter.default.removeObserver(observer)
+            self.observer = nil
+        }
+    }
+}
+
 class Observers {
     static let targetDeviceVolume = DeviceVolume()
     static let eqMacName = DeviceName()
@@ -20,18 +42,9 @@ class Observers {
     static let defaultDevice = DefaultDevice()
     static let deviceList = DeviceList()
 
-    class Observer {
-        var observer: NSObjectProtocol?
-        func stop() {
-            if let observer {
-                NotificationCenter.default.removeObserver(observer)
-                self.observer = nil
-            }
-        }
-    }
-
     class DeviceVolume: Observer {
-        func createVolumeChangeObserver(_ device: AudioDevice) -> NSObjectProtocol {
+        var observer: NSObjectProtocol?
+        func create(_ device: AudioDevice) -> NSObjectProtocol {
             device.setVolume(
                 Cli.User.options.defaultVolume,
                 channel: Cli.User.options.deviceChannel,
@@ -50,27 +63,23 @@ class Observers {
                 }
             }
         }
-        func start(device: AudioDevice) {
-            self.observer = self.observer ?? createVolumeChangeObserver(device)
-        }
     }
 
     class DeviceName: Observer {
-        func createNameChangeObserver(_ eqMacDevice: AudioDevice) -> NSObjectProtocol {
+        var observer: NSObjectProtocol?
+        func create(_ device: AudioDevice) -> NSObjectProtocol {
             return NotificationCenter.default.addObserver(forName: .deviceNameDidChange,
-                                                                      object: eqMacDevice,
+                                                                      object: device,
                                                                       queue: .main) { (_) in
-                Handler.eqMac(eqMacDevice: eqMacDevice)
-                logger.info("Name changed.\(eqMacDevice.name)")
+                Handler.eqMac(eqMacDevice: device)
+                logger.info("Name changed.\(device.name)")
             }
-        }
-        func start(device: AudioDevice) {
-            self.observer = self.observer ?? createNameChangeObserver(device)
         }
     }
 
     class DefaultDevice: Observer {
-        func createDefaultDeviceObserver() -> NSObjectProtocol {
+        var observer: NSObjectProtocol?
+        func create() -> NSObjectProtocol {
             return NotificationCenter.default.addObserver(forName: .defaultOutputDeviceChanged,
                                                                         object: nil,
                                                                         queue: .main) { (_) in
@@ -81,13 +90,11 @@ class Observers {
                 logger.info("Default output changed.\(simplyCA.defaultOutputDevice!.name)")
             }
         }
-        func start() {
-            self.observer = self.observer ?? createDefaultDeviceObserver()
-        }
     }
 
     class DeviceList: Observer {
-        func createDeviceListChangedObserver() -> NSObjectProtocol {
+        var observer: NSObjectProtocol?
+        func create() -> NSObjectProtocol {
             Handler.targetDevice()
             Handler.eqMac()
             return NotificationCenter.default.addObserver(forName: .deviceListChanged,
@@ -96,9 +103,6 @@ class Observers {
                 Handler.targetDevice()
                 Handler.eqMac()
             }
-        }
-        func start() {
-            self.observer = self.observer ?? createDeviceListChangedObserver()
         }
     }
 }
