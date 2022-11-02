@@ -14,7 +14,7 @@ extension StringProtocol {
 }
 
 struct Cli {
-    static let usageString = """
+    private static let usageString = """
     USAGE: volume-protector <target-device-name> <default-volume> <dangerous-volume> <channel> <scope>
 
     ARGUMENTS:
@@ -64,7 +64,7 @@ struct Cli {
             deviceScope: deviceScope)
     }
 
-    static func err(_ error: String) -> Never {
+    private static func err(_ error: String) -> Never {
         print(usageString)
         fatalError(error)
     }

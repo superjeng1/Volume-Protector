@@ -7,7 +7,6 @@
 
 import Foundation
 import SimplyCoreAudio
-import os
 
 @main
 struct Main {

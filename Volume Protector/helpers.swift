@@ -7,7 +7,7 @@
 
 import Foundation
 import SimplyCoreAudio
-import os
+import os.log
 
 let simplyCA = SimplyCoreAudio()
 
@@ -31,7 +31,7 @@ class Observers {
     }
 
     class DeviceVolume: Observer {
-        func createVolumeChangeObserver(_ device: AudioDevice) -> NSObjectProtocol {
+        private static func createVolumeChangeObserver(_ device: AudioDevice) -> NSObjectProtocol {
             device.setVolume(
                 Cli.User.options.defaultVolume,
                 channel: Cli.User.options.deviceChannel,
@@ -51,12 +51,12 @@ class Observers {
             }
         }
         func start(device: AudioDevice) {
-            self.observer = self.observer ?? createVolumeChangeObserver(device)
+            self.observer = self.observer ?? Observers.DeviceVolume.createVolumeChangeObserver(device)
         }
     }
 
     class DeviceName: Observer {
-        func createNameChangeObserver(_ eqMacDevice: AudioDevice) -> NSObjectProtocol {
+        private static func createNameChangeObserver(_ eqMacDevice: AudioDevice) -> NSObjectProtocol {
             return NotificationCenter.default.addObserver(forName: .deviceNameDidChange,
                                                                       object: eqMacDevice,
                                                                       queue: .main) { (_) in
@@ -65,12 +65,12 @@ class Observers {
             }
         }
         func start(device: AudioDevice) {
-            self.observer = self.observer ?? createNameChangeObserver(device)
+            self.observer = self.observer ?? Observers.DeviceName.createNameChangeObserver(device)
         }
     }
 
     class DefaultDevice: Observer {
-        func createDefaultDeviceObserver() -> NSObjectProtocol {
+        private static func createDefaultDeviceObserver() -> NSObjectProtocol {
             return NotificationCenter.default.addObserver(forName: .defaultOutputDeviceChanged,
                                                                         object: nil,
                                                                         queue: .main) { (_) in
@@ -82,12 +82,12 @@ class Observers {
             }
         }
         func start() {
-            self.observer = self.observer ?? createDefaultDeviceObserver()
+            self.observer = self.observer ?? Observers.DefaultDevice.createDefaultDeviceObserver()
         }
     }
 
     class DeviceList: Observer {
-        func createDeviceListChangedObserver() -> NSObjectProtocol {
+        private static func createDeviceListChangedObserver() -> NSObjectProtocol {
             Handler.targetDevice()
             Handler.eqMac()
             return NotificationCenter.default.addObserver(forName: .deviceListChanged,
@@ -98,7 +98,7 @@ class Observers {
             }
         }
         func start() {
-            self.observer = self.observer ?? createDeviceListChangedObserver()
+            self.observer = self.observer ?? Observers.DeviceList.createDeviceListChangedObserver()
         }
     }
 }
