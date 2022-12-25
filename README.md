@@ -5,7 +5,7 @@ It will set the volume of the target device to a defined default value, then kee
 As a bounus, it will also change the volume of [eqMac](https://eqmac.app/)'s virutal device.
 ## Usage
 ```
-USAGE: volume-protector <target-device-name> <default-volume> <dangerous-volume> <channel> <scope>
+USAGE: volume-protector <target-device-name> <default-volume> <dangerous-volume> <channel> <scope> <eqmac>
 
 ARGUMENTS:
   <target-device-name>  Audio device to monitor. Use `"` to wrap around if name includes space.
@@ -13,6 +13,7 @@ ARGUMENTS:
   <dangerous-volume>    Set volume of the audio device to 'default volume' if device volume exceeds this number.
   <channel>             Channel to change the volume for. (Use 0 in most cases.)
   <scope>               Scope to apply to when changing the volume. (output|global|input|main|playthrough|wildcard)
+  <eqmac>               Whether to montior the eqMac device. (true|false)
 ```
 The above are the command line arguments needed for the program to run. Consider adding it as an LaunchAgent so macOS would start the program at start up. Here is an example of the file, save this file as `~/Library/LaunchAgents/dev.jeng.Volume-Protector.plist`, and place the program binary at `/usr/local/bin/volume-protector`. Make sure it has executable privileges and owned by root. The device name don't have to be wrapped in quotes `"`.
 ```
@@ -31,6 +32,7 @@ The above are the command line arguments needed for the program to run. Consider
             <string>0.08</string>
             <string>0</string>
             <string>output</string>
+            <string>false</string>
         </array>
         <key>RunAtLoad</key>
         <true/>
