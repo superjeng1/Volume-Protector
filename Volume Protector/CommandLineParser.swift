@@ -13,9 +13,13 @@ extension StringProtocol {
     var uint32: UInt32? { UInt32(self) }
 }
 
+extension String {
+    var boolValue: Bool { return (self as NSString).boolValue }
+}
+
 struct Cli {
     private static let usageString = """
-    USAGE: volume-protector <target-device-name> <default-volume> <dangerous-volume> <channel> <scope>
+    USAGE: volume-protector <target-device-name> <default-volume> <dangerous-volume> <channel> <scope> <eqmac>
 
     ARGUMENTS:
       <target-device-name>  Audio device to monitor. Use `"` to wrap around if name includes space.
@@ -23,6 +27,7 @@ struct Cli {
       <dangerous-volume>    Set volume of the audio device to 'default volume' if device volume exceeds this number.
       <channel>             Channel to change the volume for. (Use 0 in most cases.)
       <scope>               Scope to apply to when changing the volume. (output|global|input|main|playthrough|wildcard)
+      <eqmac>               Whether to montior the eqMac device. (true|false)
     """
 
     struct Options {
@@ -31,6 +36,7 @@ struct Cli {
         let dangerousVolume: Float32
         let deviceChannel: UInt32
         let deviceScope: Scope
+        let eqMacEnabled: Bool
     }
 
     static let str2scope = [
@@ -54,6 +60,7 @@ struct Cli {
         guard let dangerousVolume = args.popLast()?.float32 else { err("<dangerous-volume> is not Float32.") }
         guard let deviceChannel = args.popLast()?.uint32 else { err("<channel> is not UInt32.") }
         guard let deviceScope = args.popLast().flatMap({str2scope[$0]}) else { err("<scope> is invalid.") }
+        guard let eqMacEnabled = args.popLast()?.boolValue else { err("<eqMac> is required.") }
         guard args.isEmpty else { err("Too many arguments!") }
 
         return Cli.Options(
@@ -61,7 +68,9 @@ struct Cli {
             defaultVolume: defaultVolume,
             dangerousVolume: dangerousVolume,
             deviceChannel: deviceChannel,
-            deviceScope: deviceScope)
+            deviceScope: deviceScope,
+            eqMacEnabled: eqMacEnabled
+        )
     }
 
     private static func err(_ error: String) -> Never {
