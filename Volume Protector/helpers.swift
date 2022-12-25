@@ -105,6 +105,9 @@ class Observers {
 
 class Handler {
     static func eqMac(eqMacDevice: AudioDevice? = simplyCA.allDevices.first(where: { $0.name.contains("eqMac") })) {
+        if !Cli.User.options.eqMacEnabled {
+            return
+        }
         guard let eqMacDevice else {
             Observers.defaultDevice.start()
             Observers.eqMacName.stop()
